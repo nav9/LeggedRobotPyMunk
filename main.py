@@ -123,7 +123,7 @@ class Robot:
     def getRobotAngle(self):
         return self.chassis_b.angle
         
-    def assignRandomMotorRates(self):
+    def assignGlobalMotorRates(self):
         self.motor_ba1Left.rate = Globals.motorRates[0]
         self.motor_ba1Right.rate = Globals.motorRates[1]
         self.motor_ac1Left.rate = Globals.motorRates[2]
@@ -176,7 +176,7 @@ class Simulator(object):
 
     def setRandomMotorRates(self):
         Globals.motorRates = [random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange)]
-        self.robot.assignRandomMotorRates()  
+        self.robot.assignGlobalMotorRates()  
         
     def resetBodies(self):
         for body in self.space.bodies:
@@ -202,8 +202,8 @@ class Simulator(object):
             self.checkEndPositions()
             if self.reinitializationMode == Mode.deletingRobot:
                 self.robot.deleteRobot()
-                self.createRobot()
-                self.setRandomMotorRates()  
+                self.createRobot()  
+                self.robot.assignGlobalMotorRates()
             if self.reinitializationMode == Mode.resettingRobot:
                 self.resetBodies()
         self.countdown -= 1   
