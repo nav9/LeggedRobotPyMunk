@@ -11,13 +11,22 @@ from pygame.locals import USEREVENT, QUIT, KEYDOWN, KEYUP, K_d, K_q, K_n, K_r, K
 class Mode:
     resettingRobot = 'Resetting robot each time'
     deletingRobot = 'Deleting robot each time'
+    reinitializationMode = resettingRobot
     
 class Globals:
     screenWidth = 800
     screenHeight = 400
     groundY = 50
     FPS = 50
-    motorRates = []    
+    MOVEMENT_DURATION = FPS * 2
+    highFriction = 20
+    motorRates = [] 
+    robotColorResettingMode = (0,100,200)
+    robotColorDeletingMode = (200,0,0)
+    terrainColor = (100,100,100)
+    groundColor = (50,50,50)
+    robotLegColor = (150, 150, 150)
+    robotBodyShapeFilter = pymunk.ShapeFilter(group=1)   
     
 class Robot:
     def __init__(self, space):
@@ -34,8 +43,8 @@ class Robot:
     def createRobot(self):        
         # Create the spider
         chWd = 30; chHt = 20
-        heightAboveGround = 20     
-        chassisMass = 5; robotPartsFriction = 20.0
+        heightAboveGround = 50     
+        chassisMass = 5
         chassisXY = Vec2d(Globals.screenWidth/2, Globals.groundY + heightAboveGround)
    
         legWd_a = 20; legHt_a = 2
@@ -49,15 +58,16 @@ class Robot:
         self.chassis_b.start_position = chassisXY
         self.chassis_b.start_angle = self.chassis_b.angle
         self.chassis_shape = pymunk.Poly.create_box(self.chassis_b, (chWd, chHt))
-        self.chassis_shape.color = 0, 100, 200
-        self.chassis_shape.friction = robotPartsFriction
+        if Mode.reinitializationMode == Mode.resettingRobot: self.setRobotToResettingColor()
+        if Mode.reinitializationMode == Mode.deletingRobot: self.setRobotToDeletingColor()
+        self.chassis_shape.friction = Globals.highFriction
         
         #---first left leg a
         self.leftLeg_1a_body = pymunk.Body(legMass, pymunk.moment_for_box(legMass, (legWd_a, legHt_a)))
         self.leftLeg_1a_body.position = chassisXY - ((chWd/2)+(legWd_a/2), 0)
         self.leftLeg_1a_shape = pymunk.Poly.create_box(self.leftLeg_1a_body, (legWd_a, legHt_a))        
-        self.leftLeg_1a_shape.color = 150, 150, 150
-        self.leftLeg_1a_shape.friction = robotPartsFriction
+        self.leftLeg_1a_shape.color = Globals.robotLegColor
+        self.leftLeg_1a_shape.friction = Globals.highFriction
         self.leftLeg_1a_body.start_position = self.leftLeg_1a_body.position
         self.leftLeg_1a_body.start_angle = self.leftLeg_1a_body.angle  
 
@@ -65,8 +75,8 @@ class Robot:
         self.leftLeg_1b_body = pymunk.Body(legMass, pymunk.moment_for_box(legMass, (legWd_b, legHt_b)))
         self.leftLeg_1b_body.position = self.leftLeg_1a_body.position - ((legWd_a/2)+(legWd_b/2), 0)
         self.leftLeg_1b_shape = pymunk.Poly.create_box(self.leftLeg_1b_body, (legWd_b, legHt_b))        
-        self.leftLeg_1b_shape.color = 150, 150, 150
-        self.leftLeg_1b_shape.friction = robotPartsFriction
+        self.leftLeg_1b_shape.color = Globals.robotLegColor
+        self.leftLeg_1b_shape.friction = Globals.highFriction
         self.leftLeg_1b_body.start_position = self.leftLeg_1b_body.position
         self.leftLeg_1b_body.start_angle = self.leftLeg_1b_body.angle                
 
@@ -74,8 +84,8 @@ class Robot:
         self.rightLeg_1a_body = pymunk.Body(legMass, pymunk.moment_for_box(legMass, (legWd_a, legHt_a)))
         self.rightLeg_1a_body.position = chassisXY + ((chWd/2)+(legWd_a/2), 0)
         self.rightLeg_1a_shape = pymunk.Poly.create_box(self.rightLeg_1a_body, (legWd_a, legHt_a))        
-        self.rightLeg_1a_shape.color = 150, 150, 150
-        self.rightLeg_1a_shape.friction = robotPartsFriction       
+        self.rightLeg_1a_shape.color = Globals.robotLegColor
+        self.rightLeg_1a_shape.friction = Globals.highFriction       
         self.rightLeg_1a_body.start_position = self.rightLeg_1a_body.position
         self.rightLeg_1a_body.start_angle = self.rightLeg_1a_body.angle        
 
@@ -83,8 +93,8 @@ class Robot:
         self.rightLeg_1b_body = pymunk.Body(legMass, pymunk.moment_for_box(legMass, (legWd_b, legHt_b)))
         self.rightLeg_1b_body.position = self.rightLeg_1a_body.position + ((legWd_a/2)+(legWd_b/2), 0)
         self.rightLeg_1b_shape = pymunk.Poly.create_box(self.rightLeg_1b_body, (legWd_b, legHt_b))        
-        self.rightLeg_1b_shape.color = 150, 150, 150
-        self.rightLeg_1b_shape.friction = robotPartsFriction     
+        self.rightLeg_1b_shape.color = Globals.robotLegColor
+        self.rightLeg_1b_shape.friction = Globals.highFriction     
         self.rightLeg_1b_body.start_position = self.rightLeg_1b_body.position
         self.rightLeg_1b_body.start_angle = self.rightLeg_1b_body.angle        
 
@@ -109,14 +119,19 @@ class Robot:
         
         #print('Created at: ', self.getRobotPosition(), self.getRobotAngle())       
 
-        #---prevent collisions among body parts with ShapeFilter
-        shape_filter = pymunk.ShapeFilter(group=1)
-        self.chassis_shape.filter = shape_filter
-        self.leftLeg_1a_shape.filter = shape_filter
-        self.rightLeg_1a_shape.filter = shape_filter
-        self.leftLeg_1b_shape.filter = shape_filter
-        self.rightLeg_1b_shape.filter = shape_filter 
+        #---prevent collisions among body parts with ShapeFilter        
+        self.chassis_shape.filter = Globals.robotBodyShapeFilter
+        self.leftLeg_1a_shape.filter = Globals.robotBodyShapeFilter
+        self.rightLeg_1a_shape.filter = Globals.robotBodyShapeFilter
+        self.leftLeg_1b_shape.filter = Globals.robotBodyShapeFilter
+        self.rightLeg_1b_shape.filter = Globals.robotBodyShapeFilter
         
+    def setRobotToResettingColor(self):
+        self.chassis_shape.color = Globals.robotColorResettingMode
+
+    def setRobotToDeletingColor(self):
+        self.chassis_shape.color = Globals.robotColorDeletingMode
+                
     def getRobotPosition(self):
         return self.chassis_b.position  
     
@@ -135,16 +150,16 @@ class Simulator(object):
         self.screenHeight = Globals.screenHeight
         self.display_size = (Globals.screenWidth, Globals.screenHeight)
         self.space = pymunk.Space()
-        self.space.gravity = (0.0, -1900.0)
+        self.space.gravity = (0.0, -980.0)
         #self.space.damping = 0.999 # to prevent it from blowing up.
 
         #---Pymunk physics coordinates start from the lower right-hand corner of the screen.
         self.createGround()
         self.screen = None
         self.draw_options = None
-        self.countdown = Globals.FPS
-        self.statsPos = Vec2d(0, 0)
-        self.displayStr = ["Keys:","'r' to reset existingrobot","'d' to delete existing robot and create new one","'n' to set new motor rates","'q' to quit"]
+        self.countdown = Globals.MOVEMENT_DURATION
+        self.textDisplayPos = Vec2d(0, 0)
+        self.displayStr = ["Keys:","'r' to reset robot without deletion","'d' to reset robot via deletion","'n' to set new motor rates","'q' to quit"]
         #self.startPosAndAngles = None        
         self.endPos = None
         self.prevEndPos = None
@@ -153,8 +168,7 @@ class Simulator(object):
         maxMotorRate = 6
         motorRateRangePieces = (maxMotorRate * 2 + 1) * 10
         self.motorRateRange = np.linspace(-maxMotorRate, maxMotorRate, motorRateRangePieces)          
-        self.setRandomMotorRates()        
-        self.reinitializationMode = Mode.resettingRobot
+        self.setRandomMotorRates()                
         
     def createRobot(self):
         self.robot = Robot(self.space)
@@ -162,15 +176,17 @@ class Simulator(object):
     def createGround(self):       
         thickness = 5; firstEndpoint = (0, Globals.groundY); secondEndpoint = (Globals.screenWidth, Globals.groundY)
         ground = pymunk.Segment(self.space.static_body, firstEndpoint, secondEndpoint, thickness)
-        ground.friction = 20.0; ground.color = 50,50,50
-        self.space.add(ground)       
+        ground.friction = Globals.highFriction; ground.color = Globals.groundColor
+        self.space.add(ground)   
+        self.createTerrainRandomBoxesLowDense()    
         
     def displayStats(self):
-        appendedString = self.displayStr[:] #copying by value instead of reference
-        appendedString.append("Reinitialization mode: "+self.reinitializationMode)
+        appendedString = ["Reinitialization mode: "+Mode.reinitializationMode]
+        for s in self.displayStr[:]:
+            appendedString.append(s)
         verticalSeparation = 15
         for i in range(0,len(appendedString),1): 
-            self.screen.blit(self.font.render(appendedString[i], 1, THECOLORS["gray"]), self.statsPos + (0, i * verticalSeparation))
+            self.screen.blit(self.font.render(appendedString[i], 1, THECOLORS["gray"]), self.textDisplayPos + (0, i * verticalSeparation))
 
     def setRandomMotorRates(self):
         Globals.motorRates = [random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange)]
@@ -187,8 +203,7 @@ class Simulator(object):
             body.torque = 0
             body.velocity = 0, 0
             body.angular_velocity = 0
-            body.angle = body.start_angle
-        #print('Reset at: ', self.robot.getRobotPosition(), self.robot.getRobotAngle())            
+            body.angle = body.start_angle        
     
     def checkEndPositions(self):        
         self.endPos = [self.robot.getRobotPosition(), self.robot.getRobotAngle()]
@@ -198,33 +213,71 @@ class Simulator(object):
     
     def countdownForReset(self):
         if self.countdown <= 0: 
-            self.countdown = Globals.FPS
+            self.countdown = Globals.MOVEMENT_DURATION
             self.checkEndPositions()
-            if self.reinitializationMode == Mode.deletingRobot:
+            if Mode.reinitializationMode == Mode.deletingRobot:
                 self.robot.deleteRobot()
                 self.createRobot()  
                 self.robot.assignGlobalMotorRates()
-            if self.reinitializationMode == Mode.resettingRobot:
+            if Mode.reinitializationMode == Mode.resettingRobot:
                 self.resetBodies()
         self.countdown -= 1   
+        
+    def createTerrainRandomBoxesLowDense(self):
+        numObjects = 30; debrisStartRow = 60; debrisStartCol = 200; debrisEndCol = 500; debrisMaxHt = 10; boxMinSz = 5; boxMaxSz = 10
+        for _ in range(numObjects):
+            col = random.randint(debrisStartCol, debrisEndCol)
+            row = random.randint(debrisStartRow, debrisStartRow + debrisMaxHt)
+            wid = random.randint(boxMinSz, boxMaxSz)
+            ht = random.randint(boxMinSz, boxMaxSz)
+            if random.random() > 0.5:
+                self.createBox(col, row, wid, ht, Globals.terrainColor, None)
+            else:  
+                self.createSphere(col, row, ht/2)     
+        
+    def createBox(self, x, y, wd, ht, colour, fil):#fil can be passed as None if it is a box that the robot cannot move through
+        body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
+        body.position = Vec2d(x, y)
+        body.width = wd
+        body.height = ht
+        try:
+            shape = pymunk.Poly.create_box(body, (wd, ht))
+            if fil: shape.filter = Globals.robotBodyShapeFilter #to create boxes that the robot can move through
+            shape.color = colour
+        except:
+            pass
+        shape.friction = Globals.highFriction
+        self.space.add(shape)
+        
+    def createSphere(self, xPosition, yPosition, radius):
+        sphereMass = 5000
+        sphereInertia = pymunk.moment_for_circle(sphereMass, 0, radius, (0, 0))
+        body = pymunk.Body(sphereMass, sphereInertia, body_type=pymunk.Body.KINEMATIC)
+        #x = random.randint(115, 350)
+        body.position = xPosition, yPosition
+        shape = pymunk.Circle(body, radius, (0, 0))
+        #shape.elasticity = 0.95
+        shape.friction = Globals.highFriction
+        shape.color = Globals.terrainColor
+        self.space.add(body, shape)    
 
     def draw(self):        
-        self.screen.fill(THECOLORS["black"])### Clear the screen        
-        self.space.debug_draw(self.draw_options)### Draw space  
+        self.screen.fill(THECOLORS["black"])# Clear screen        
+        self.space.debug_draw(self.draw_options)# Draw space  
         self.displayStats()      
-        pygame.display.flip()### All done, lets flip the display
+        pygame.display.flip()# All done, flip the display
     
     def run(self):
         pygame.init()
         self.screen = pygame.display.set_mode(self.display_size, self.display_flags)
-        width, height = self.screen.get_size()
+#         width, height = self.screen.get_size()
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.draw_options.constraint_color = 100,100,100 #color of the joints of the robot
 
-        def to_pygame(p):            
-            return int(p.x), int(-p.y+height) #Small hack to convert pymunk to pygame coordinates
-        def from_pygame(p):
-            return to_pygame(p)
+#         def to_pygame(p):            
+#             return int(p.x), int(-p.y+height) #Small hack to convert pymunk to pygame coordinates
+#         def from_pygame(p):
+#             return to_pygame(p)
 
         clock = pygame.time.Clock()
         running = True
@@ -240,9 +293,13 @@ class Simulator(object):
                 elif event.type == KEYDOWN and event.key == K_q:
                     sys.exit()     
                 elif event.type == KEYDOWN and event.key == K_r:
-                    self.reinitializationMode = Mode.resettingRobot
+                    Mode.reinitializationMode = Mode.resettingRobot
+                    self.robot.setRobotToResettingColor()
+                    print('Mode: Resetting')
                 elif event.type == KEYDOWN and event.key == K_d:
-                    self.reinitializationMode = Mode.deletingRobot                                             
+                    Mode.reinitializationMode = Mode.deletingRobot
+                    self.robot.setRobotToDeletingColor()
+                    print('Mode: Deleting')                                             
 
             self.draw()
             self.countdownForReset()
