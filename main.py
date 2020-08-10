@@ -127,9 +127,7 @@ class Robot:
         self.motor_ba1Left.rate = Globals.motorRates[0]
         self.motor_ba1Right.rate = Globals.motorRates[1]
         self.motor_ac1Left.rate = Globals.motorRates[2]
-        self.motor_ac1Right.rate = Globals.motorRates[3]
-        print('.........................')
-        print('Motor rates: ', Globals.motorRates)            
+        self.motor_ac1Right.rate = Globals.motorRates[3]          
     
 class Simulator(object):
     def __init__(self):
@@ -176,6 +174,8 @@ class Simulator(object):
 
     def setRandomMotorRates(self):
         Globals.motorRates = [random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange), random.choice(self.motorRateRange)]
+        print('.........................\nMotor rates: ', Globals.motorRates)  
+        self.prevEndPos = None        
         self.robot.assignGlobalMotorRates()  
         
     def resetBodies(self):
