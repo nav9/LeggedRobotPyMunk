@@ -236,7 +236,7 @@ class Simulator(object):
                 self.createSphere(col, row, ht/2)     
         
     def createBox(self, x, y, wd, ht, colour, fil):#fil can be passed as None if it is a box that the robot cannot move through
-        body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
+        body = pymunk.Body(body_type = pymunk.Body.DYNAMIC) #pymunk.Body(body_type = pymunk.Body.KINEMATIC)
         body.position = Vec2d(x, y)
         body.width = wd
         body.height = ht
