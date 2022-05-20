@@ -247,7 +247,7 @@ class Simulator(object):
         except:
             pass
         shape.friction = Globals.highFriction
-        self.space.add(shape)
+        self.space.add(body, shape)
         
     def createSphere(self, xPosition, yPosition, radius):
         sphereMass = 5000
