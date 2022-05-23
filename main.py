@@ -21,11 +21,11 @@ class Globals:
     MOVEMENT_DURATION = FPS * 2
     highFriction = 20
     motorRates = [] 
-    robotColorResettingMode = (0,100,200)
-    robotColorDeletingMode = (200,0,0)
-    terrainColor = (100,100,100)
-    groundColor = (50,50,50)
-    robotLegColor = (150, 150, 150)
+    robotColorResettingMode = (0,100,200,100)
+    robotColorDeletingMode = (200,0,0,100)
+    terrainColor = (100,100,100,100)
+    groundColor = (50,50,50,100)
+    robotLegColor = (150, 150, 150, 100)
     robotBodyShapeFilter = pymunk.ShapeFilter(group=1)   
     
 class Robot:
@@ -272,7 +272,7 @@ class Simulator(object):
         self.screen = pygame.display.set_mode(self.display_size, self.display_flags)
 #         width, height = self.screen.get_size()
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
-        self.draw_options.constraint_color = 100,100,100 #color of the joints of the robot
+        self.draw_options.constraint_color = 100,100,100,100 #color of the joints of the robot
 
 #         def to_pygame(p):            
 #             return int(p.x), int(-p.y+height) #Small hack to convert pymunk to pygame coordinates
