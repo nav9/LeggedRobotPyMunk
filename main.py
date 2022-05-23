@@ -198,7 +198,7 @@ class Simulator(object):
         for body in self.space.bodies:
             if not hasattr(body, 'start_position'):
                 continue
-            body.position = Vec2d(body.start_position)
+            body.position = Vec2d(body.start_position[0], body.start_position[1])
             body.force = 0, 0
             body.torque = 0
             body.velocity = 0, 0
