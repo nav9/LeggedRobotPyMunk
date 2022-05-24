@@ -15,8 +15,8 @@ class Mode:
     
 class Globals:
     screenWidth = 800
-    screenHeight = 400
-    groundY = 50
+    screenHeight = 500
+    groundY = 450
     FPS = 50
     MOVEMENT_DURATION = FPS * 2
     highFriction = 20
@@ -43,7 +43,7 @@ class Robot:
     def createRobot(self):        
         # Create the spider
         chWd = 30; chHt = 20
-        heightAboveGround = 50     
+        heightAboveGround = -50     
         chassisMass = 5
         chassisXY = Vec2d(Globals.screenWidth/2, Globals.groundY + heightAboveGround)
    
@@ -150,7 +150,7 @@ class Simulator(object):
         self.screenHeight = Globals.screenHeight
         self.display_size = (Globals.screenWidth, Globals.screenHeight)
         self.space = pymunk.Space()
-        self.space.gravity = (0.0, -980.0)
+        self.space.gravity = (0.0, 980.0)
         #self.space.damping = 0.999 # to prevent it from blowing up.
 
         #---Pymunk physics coordinates start from the lower right-hand corner of the screen.
@@ -178,7 +178,7 @@ class Simulator(object):
         ground = pymunk.Segment(self.space.static_body, firstEndpoint, secondEndpoint, thickness)
         ground.friction = Globals.highFriction; ground.color = Globals.groundColor
         self.space.add(ground)   
-        self.createTerrainRandomBoxesLowDense()    
+        #self.createTerrainRandomBoxesLowDense()    
         
     def displayStats(self):
         appendedString = ["Reinitialization mode: "+Mode.reinitializationMode]
@@ -224,7 +224,7 @@ class Simulator(object):
         self.countdown -= 1   
         
     def createTerrainRandomBoxesLowDense(self):
-        numObjects = 30; debrisStartRow = 60; debrisStartCol = 200; debrisEndCol = 500; debrisMaxHt = 10; boxMinSz = 5; boxMaxSz = 10
+        numObjects = 30; debrisStartRow = 435; debrisStartCol = 200; debrisEndCol = 500; debrisMaxHt = 10; boxMinSz = 5; boxMaxSz = 10
         for _ in range(numObjects):
             col = random.randint(debrisStartCol, debrisEndCol)
             row = random.randint(debrisStartRow, debrisStartRow + debrisMaxHt)
