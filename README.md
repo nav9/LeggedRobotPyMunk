@@ -1,16 +1,13 @@
 ![Alt text](images/leggedRobotOnTerrain.png?raw=true "Legged Robot")
 
 # LeggedRobotPyMunk
-A simple legged robot created in PyMunk. This was created to test out some scenarios where the physics appeared to behave strangely.
+A simple legged robot created in PyMunk. This was created to test out some scenarios where the physics appeared to behave strangely. It involved making the robot move over some obstacles. As of now the obstacles are removed. To re-enable them, un-comment the `self.createTerrainRandomBoxesLowDense()` line.
   
 # To run  
-Please use Python 3.
+Please use Python 3. This program used Python 3.9.6.
 Install the following packages:  
-* `pip install pygame`
-* `pip install pymunk`  
+* `pip install pygame==2.1.2`
+* `pip install pymunk==6.2.1`  
   
 and then run using:  
 `python3 main.py`
-  
-# Known issues  
-The gravity and y axis are inverted in the newer versions of PyMunk. I'm sure you can figure it out and fix it.
