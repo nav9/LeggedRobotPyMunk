@@ -11,3 +11,5 @@ Install the following packages:
   
 and then run using:  
 `python3 main.py`
+
+  [![Donate](https://raw.githubusercontent.com/nav9/VCF_contacts_merger/main/gallery/thankYouDonateButton.png)](https://nrecursions.blogspot.com/2020/08/saying-thank-you.html)  
